@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เกม พนัน 🎰</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #2c3e50; color: white; text-align: center; padding: 20px; }
+    .slot-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 20px 0; height: 120px; }
+    .slot { width: 100px; height: 100px; background-color: #34495e; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; color: yellow; overflow: hidden; }
+    .slot-inner { display: flex; flex-direction: column; align-items: center; }
+    .button { background-color: #e74c3c; color: white; padding: 15px 30px; font-size: 20px; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; }
+    .button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+    .owner-panel { margin-top: 20px; padding: 20px; background-color: #34495e; border-radius: 10px; display: none; }
+    .owner-panel input { font-size: 18px; padding: 5px; width: 100px; margin: 5px; }
+    .result { margin-top: 20px; font-size: 1.5rem; color: #f1c40f; }
+    .balance { margin-top: 10px; font-size: 1.5rem; }
+  </style>
+</head>
+<body>
+  <h1>🎰 เกมสล็อตผลไม้</h1>
+  <div class="slot-container">
+    <div class="slot" id="slot1"><div class="slot-inner">🍉</div></div>
+    <div class="slot" id="slot2"><div class="slot-inner">🍊</div></div>
+    <div class="slot" id="slot3"><div class="slot-inner">🍒</div></div>
+  </div>
+  <button class="button" id="spinBtn">หมุน (10 บาท)</button>
+  <div class="result" id="result">ผลลัพธ์จะขึ้นที่นี่</div>
+  <div class="balance" id="balance">ยอดเงิน: 1000 บาท</div>
+
+  <div class="owner-panel" id="ownerPanel">
+    <h2>🔧 แผงควบคุมเจ้าของ</h2>
+    <div>อัตราออกผลไม้แรก (น้ำหนัก): <input type="number" id="fruitWeight" value="30" min="1" max="100">%</div>
+    <div>จำนวนเงินรางวัลเมื่อชนะ: <input type="number" id="rewardAmount" value="100" min="10" max="1000"> บาท</div>
+    <button class="button" id="applySettingsBtn">บันทึกการตั้งค่า</button>
+  </div>
+
+  <script>
+    const fruits = ["🍉","🍊","🍒"];
+    let balance = 1000;
+    let weight = 30;       // เปอร์เซนต์น้ำหนักผลไม้แรก
+    let rewardAmount = 100; // รางวัลเมื่อชนะ
+
+    const spinBtn = document.getElementById('spinBtn');
+    const resultEl = document.getElementById('result');
+    const balanceEl = document.getElementById('balance');
+    const ownerPanel = document.getElementById('ownerPanel');
+
+    function updateBalance() {
+      balanceEl.innerText = `ยอดเงิน: ${balance} บาท`;
+    }
+
+    function randomFruit() {
+      const r = Math.random() * 100;
+      if (r < weight) return fruits[0];
+      if (r < 100 - (100 - weight) / 2) return fruits[1];
+      return fruits[2];
+    }
+
+    function rollSlots() {
+      if (balance < 10) { alert('เงินไม่พอ!'); return; }
+      balance -= 10;
+      updateBalance();
+      spinBtn.disabled = true;
+      resultEl.innerText = 'กำลังหมุน...';
+
+      const slots = [document.getElementById('slot1'), document.getElementById('slot2'), document.getElementById('slot3')];
+      let spinCount = 0;
+      const totalSpins = 30;
+
+      function spinStep() {
+        spinCount++;
+        // ปรับความเร็วช้าเรื่อยๆ
+        let delay = 50 + spinCount * 10; // เริ่มเร็ว แล้วช้าลง
+
+        // แสดงผลชั่วคราว
+        slots.forEach(slot => {
+          slot.firstElementChild.innerText = fruits[Math.floor(Math.random() * fruits.length)];
+        });
+
+        if (spinCount < totalSpins) {
+          setTimeout(spinStep, delay);
+        } else {
+          // แสดงผลจริง
+          const results = [randomFruit(), randomFruit(), randomFruit()];
+          slots.forEach((slot, i) => slot.firstElementChild.innerText = results[i]);
+
+          if (results[0] === results[1] && results[0] === results[2]) {
+            balance += rewardAmount;
+            updateBalance();
+            resultEl.innerText = `ยินดีด้วย! คุณชนะ ${rewardAmount} บาท!`;
+          } else {
+            resultEl.innerText = 'เสียใจ! ไม่ชนะ ลองใหม่อีกครั้ง';
+          }
+          spinBtn.disabled = false;
+        }
+      }
+
+      spinStep();
+    }
+
+    spinBtn.addEventListener('click', rollSlots);
+
+    // Owner Panel
+    const isOwner = true; // ถ้าคนเล่นปกติให้ตั้งเป็น false
+    if (isOwner) {
+      ownerPanel.style.display = 'block';
+      document.getElementById('applySettingsBtn').addEventListener('click', () => {
+        const w = parseInt(document.getElementById('fruitWeight').value);
+        if (!isNaN(w) && w >=1 && w<=100) weight = w;
+        const r = parseInt(document.getElementById('rewardAmount').value);
+        if (!isNaN(r) && r >=10) rewardAmount = r;
+        alert('บันทึกการตั้งค่าเรียบร้อย!');
+      });
+    }
+
+    updateBalance();
+  </script>
+</body>
+</html>
